@@ -1,0 +1,15 @@
+{
+  "name": "mnist-cnn",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "mnist_cnn_bg.wasm",
+    "mnist_cnn.js",
+    "mnist_cnn.d.ts"
+  ],
+  "main": "mnist_cnn.js",
+  "types": "mnist_cnn.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
