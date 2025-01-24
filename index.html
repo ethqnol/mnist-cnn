@@ -1,293 +1,466 @@
 <!doctype html>
 <html lang="en-US">
-  <head>
-      
-    <meta charset="utf-8" />
-    <title>CNN MNIST</title>
-    <script
-          src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"
-          integrity="sha256-SPjwkVvrUS/H/htIwO6wdd0IA8eQ79/XXNAH+cPuoso="
-          crossorigin="anonymous"
-    ></script>
-    <script
-    src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
-    </script>
-    
-    <script src="./pkg/mnist_cnn.js"></script>
-  </head>
-  
-  <style>
-        body {
-          font-family: Arial, sans-serif;
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          justify-content: center;
-          background-color: #f0f0f0;
-          margin: 0;
-          padding: 20px;
-        }
-  
-        canvas {
-          margin: 10px;
-          border-radius: 8px;
-        }
-  
-        #canvas {
-          border: 2px solid #aaa;
-        }
-  
-        #canvas_scale {
-          border: 2px solid #aaa;
-          border-bottom: 2rem;
-        }
-  
-        #model_result {
-          margin-top: 20px;
-          background-color: #fff;
-          border: 1px solid #aaa;
-          border-radius: 8px;
-        }
-  
-        button {
-          margin: 10px;
-          padding: 10px 20px;
-          font-size: 16px;
-          border: none;
-          border-radius: 8px;
-          cursor: pointer;
-          transition: background-color 0.3s;
-        }
-  
-        #run_button {
-          background-color: #4CAF50;
-          color: white;
-        }
-  
-        #run_button:hover {
-          background-color: #45a049;
-        }
-  
-        #clear_button {
-          background-color: #f44336;
-          color: white;
-        }
-  
-        #clear_button:hover {
-          background-color: #e53935;
-        }
-        
-        .buttons {
-            margin-left: 28px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        
-        #model_pred {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            border: 3px solid #aaa;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 8px;
-        }
-        
-        #model_pred p {
-            margin: 2px;
-            margin-bottom: 5px;
-        }
-        
-        @media only screen and (max-width: 1400px) {
-          body {
-            flex-direction: column;
-          }
-          
-          .buttons {
-              margin-left: 0px;
-              margin-top: 20px;
-              display: flex;
-              flex-direction: row;
-              justify-content: center;
-          }
-          
-          #model_pred {
-              margin-top: 0;
-          }
-          
-          
-        
-        }
-      </style>
 
-  <body>
+<head>
 
-    <canvas id="canvas" width="350" height="350" style="border: 4px solid #aaa"></canvas>
-    <canvas id="canvas_crop" width="300" height="300" style="display: none;"></canvas>
-    
-    <div class="buttons">
+  <meta charset="utf-8" />
+  <title>CNN MNIST</title>
+  <script src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"
+    integrity="sha256-SPjwkVvrUS/H/htIwO6wdd0IA8eQ79/XXNAH+cPuoso=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
+  </script>
+
+  <script src="./pkg/mnist_cnn.js"></script>
+</head>
+
+<style>
+  /* General styling for dark mode */
+  body {
+    margin: 0;
+    font-family: 'Monospace', sans-serif;
+    background-color: #011529;
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Styling for the canvases */
+  canvas {
+    display: block;
+    margin: 20px auto;
+    border-radius: 8px;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+  }
+
+  /* Main canvas */
+  #canvas {
+    border: 8px solid #2b2a2a;
+    background-color: #bdbdbd;
+  }
+
+  /* Hidden canvases */
+  #canvas_crop,
+  #canvas_scale {
+    display: none;
+  }
+
+  .buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 50px;
+    max-width: 350px;
+  }
+
+  /* Buttons styling */
+  button {
+    padding: 12px 18px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #e0e0e0;
+    background-color: #474d61;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+
+  button:hover {
+    background: #393939;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.9);
+  }
+
+  button:active {
+    transform: scale(0.95);
+  }
+
+  /* Prediction container */
+  #model_pred {
+    padding: 10px 6px;
+    text-align: center;
+    font-size: 16px;
+    color: #9e9e9e;
+    border: solid, #c1c1c1;
+    border-radius: 8px;
+  }
+
+  /* Prediction text */
+  #model_prediction {
+    padding: 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: #76ff03;
+  }
+
+  /* Result canvas styling */
+  #model_result {
+    border: 4px solid #555;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    margin: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+    width: 100%;
+    max-width: 600px;
+  }
+
+  .collapsible {
+    color: #e0e0e0;
+    background-color: #474d61;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+  }
+
+  /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+  .active,
+  .collapsible:hover {
+    background: #393939;
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.9);
+  }
+
+  /* Style the collapsible content. Note: hidden by default */
+  .ethan-yapps-a-lot {
+    padding: 0 18px;
+    display: none;
+    margin-top: 5px;
+    overflow: hidden;
+    color: #e0e0e0;
+    background-color: #474d61;
+    border-radius: 8px;
+    border: solid, white;
+  }
+
+  .collapsible:after {
+    content: '+';
+    font-size: 20px;
+    color: white;
+    float: right;
+    margin-left: 5px;
+  }
+
+  .active:after {
+    content: "-";
+  }
+
+  .yapp {
+    margin-top: 20px;
+    max-width: 40vw;
+    width: 100%;
+  }
+
+  .main-stuff-ppl-care-about {
+
+    gap: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%
+  }
+
+  .pred-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 20px;
+    max-width: 600px;
+  }
+
+  .pred-stats p {
+    padding: 0;
+    margin: 0;
+
+  }
+
+  .pred-stats h3 {
+    padding: 0;
+    margin: 0;
+
+  }
+
+  @media only screen and (max-width: 1800px) {
+    .main-stuff-ppl-care-about {
+      flex-direction: column;
+    }
+
+    .yapp {
+      max-width: 80vw;
+    }
+
+    #model_pred {
+      margin-top: 0;
+    }
+
+
+
+  }
+</style>
+
+<body>
+  <div class="yapp"> <button type="button" class="collapsible">Open Collapsible</button>
+    <div class="ethan-yapps-a-lot">
+
+      <p>This network was written completely in Rust (at least the parts that matter; the frontend website stuff is
+        written in JavaScript and HTML or whatever 🤮🤮🤮) using the deep learning framework Burn.dev (basically
+        PyTorch/Tensorflow but for Rust). The network was trained, and the resulting weights/parameters were exported to
+        a binary, which the model then loads up for inference. The model was compiled from Rust into WASM and runs 100%
+        in your browser (sorry GPU). </p>
+      <h1 id="network-architecture">Network Architecture</h1>
+      <p>This network is a &quot;convolutional neural network&quot; (a.k.a CNN or ConvNet) that has 3 convolutional
+        layers and 2 fully connected layers.</p>
+      <h3 id="convolutional-layers">Convolutional Layers</h3>
+      <p>The convolutional layer notation follows: <code>[feature maps]C[kernel size]S[stride size]</code>. Each
+        convolutional layer is part of a convolutional &quot;block&quot; that contains:</p>
+      <ol>
+        <li><strong>Convolution</strong>: Extracts features by applying filters.</li>
+        <li><strong>Batch Normalization</strong>: Normalizes inputs by centering and scaling to improve speed and
+          stability.</li>
+        <li><strong>ReLU Activation</strong>: Activation that adds non-linearity.</li>
+      </ol>
+      <p>In between ConvBlock 2 and 3 and right after ConvBlock 3 are max pooling layers which are notated by: P[stride
+        size]. These extract the most important features and reduces spatial size. </p>
+      <p>The architecture for the convolutional layers:</p>
+      <ol>
+        <li><strong>ConvBlock 1</strong>: 32C3S1 + BatchNorm2d + ReLU</li>
+        <li><strong>ConvBlock 2</strong>: 64C3S1 + BatchNorm2d + ReLU</li>
+        <li><strong>MaxPool1</strong>: P2</li>
+        <li><strong>ConvBlock 3</strong>: 128C3 + BatchNorm2d + ReLU</li>
+        <li><strong>MaxPool2</strong>: P2</li>
+      </ol>
+      <hr>
+      <h3 id="fully-connected-layers">Fully Connected Layers</h3>
+      <p>Inputs are then flattened and passed through a sequence of fully connected (linear) layers with batch
+        normalization and ReLU activation. The notation for fully connected layers is
+        <code>[number of neurons/hidden units]</code>.</p>
+      <p>As with the convolutional layer, each linear layer is part of a &quot;block&quot;:</p>
+      <ol>
+        <li><strong>Linear</strong>: Linear layer</li>
+        <li><strong>Batch Normalization</strong></li>
+        <li><strong>ReLU</strong> </li>
+      </ol>
+      <p>A dropout layer is added between the linear blocks. The architecture for FC layers is:</p>
+      <ol>
+        <li><strong>LinearBlock 1</strong>: 128 + BatchNorm1d + ReLU</li>
+        <li><strong>Dropout 1</strong>: Rate of 0.5</li>
+        <li><strong>LinearBlock 2</strong>: 64 + BatchNorm1d + ReLU</li>
+        <li><strong>Dropout 2</strong>: Rate of 0.5 </li>
+        <li><strong>Output Layer</strong>: 10</li>
+      </ol>
+      <hr>
+      <h2 id="training">Training</h2>
+      <h3 id="loss-function">Loss Function</h3>
+      <ul>
+        <li>The model uses <strong>Cross-Entropy Loss</strong> (which I&#39;m pretty sure is standard for this kind of
+          classification). This loss function computes the difference between the predicted class probabilities (via
+          softmax) and the labels/targets.</li>
+      </ul>
+      <h3 id="optimizer">Optimizer</h3>
+      <ul>
+        <li>The Model uses an <strong>Adam Optimizer</strong> which optimizes gradient descent (or something). I
+          actually have no idea how it works, so: <a
+            href="https://arxiv.org/pdf/1412.6980">https://arxiv.org/pdf/1412.6980</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="main-stuff-ppl-care-about">
+    <div class="canvas-ctrl">
+      <canvas id="canvas" width="350" height="350" style="border: 4px solid #aaa"></canvas>
+      <canvas id="canvas_crop" width="300" height="300" style="display: none;"></canvas>
+
+      <div class="buttons">
         <button id="run_button">Run Model</button>
         <button id="clear_button">Clear</button>
         <div id="model_pred">
-            <p>Prediction: 
-            </p>
-            <span id="model_prediction">None</span>
+          Prediction:
+          <span id="model_prediction">None</span>
         </div>
+      </div>
     </div>
-    
-    <canvas id="model_result" style="width:100%;max-width:700px"></canvas>
-    <canvas id="canvas_scale" width="28" height="28" style="display: none;"></canvas>
-    <script type="module">
-        import init, { run_model } from "./pkg/mnist_cnn.js";
-      
-        let model_pred = document.getElementById("model_prediction");
-        
-        
-        const canvas_main = document.getElementById("canvas");
-        const main_ctx = canvas_main.getContext("2d");
-        
-        const canvas_crop = document.getElementById("canvas_crop");
-        const crop_ctx = canvas_crop.getContext("2d");
-        
-        const canvas = document.getElementById("canvas_scale");
-        const scale_ctx = canvas.getContext("2d");
-        
-        let chart = new Chart("model_result", {
-            type: 'bar',
-            data: {
-                labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
-                datasets: [{
-                    label: 'Model Result',
-                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)',
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)',
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true,
-                            max: 1,
-                            min: 0
-                        }
-                    }]
-                }
-            }
-        })
-        
-        const run_button = document.getElementById("run_button");
-        const fabricCanvas = new fabric.Canvas(canvas_main, {
-            isDrawingMode: true,
-        });
-      
-        fabricCanvas.freeDrawingBrush.width = 30;
-        
-        run_button.addEventListener("click", model);
-        
-        
-        
-        
-        function model() {
-            crop_img(main_ctx, crop_ctx);
-            scale_ctx.drawImage(canvas_crop, 5, 5, 18, 18);
-            scale_ctx.filter = 'grayscale(1)'
-            const img_data = scale_ctx.getImageData(0, 0, 28, 28);
-            
+    <div class="pred-stats">
+      <h3> Prediction Probability Result</h3>
+      <p>Highest probability is the final prediction.</p>
+      <canvas id="model_result" style="width:100%;max-height:400px"></canvas>
+    </div>
+  </div>
+  <canvas id="canvas_scale" width="28" height="28" style="display: none;"></canvas>
+  <script type="module">
+    import init, { run_model } from "./pkg/mnist_cnn.js";
 
-            
-            
-            let data = (new Float64Array(img_data.data));
-            let scaled_data = new Float64Array(784);
-            let scaled_counter = 0;
-            for (let i = 3; i < data.length; i += 4) {
-                scaled_data[scaled_counter] = data[i] / 255.0 * 0.99 + 0.01;
-                scaled_counter++;
+    let model_pred = document.getElementById("model_prediction");
+
+
+    const canvas_main = document.getElementById("canvas");
+    const main_ctx = canvas_main.getContext("2d");
+
+    const canvas_crop = document.getElementById("canvas_crop");
+    const crop_ctx = canvas_crop.getContext("2d");
+
+    const canvas = document.getElementById("canvas_scale");
+    const scale_ctx = canvas.getContext("2d");
+
+    let chart = new Chart("model_result", {
+      type: 'horizontalBar',
+      data: {
+        labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+        datasets: [{
+          label: 'Model Result',
+          data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.2)',
+            'rgba(54, 162, 235, 0.2)',
+            'rgba(255, 206, 86, 0.2)',
+            'rgba(75, 192, 192, 0.2)',
+            'rgba(153, 102, 255, 0.2)',
+            'rgba(255, 159, 64, 0.2)',
+            'rgba(255, 99, 132, 0.2)',
+            'rgba(54, 162, 235, 0.2)',
+            'rgba(255, 206, 86, 0.2)',
+            'rgba(75, 192, 192, 0.2)',
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+            'rgba(255, 159, 64, 1)',
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+          ],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        scales: {
+          xAxes: [{
+            ticks: {
+              beginAtZero: true,
+              max: 1,
+              min: 0
             }
-            
-            //console.log(scaled_data)
-            init().then(() => {
-                let model_res = run_model(scaled_data);
-                //console.log(model_res);
-                chart.data.datasets[0].data = model_res;
-                chart.update();
-                let pred = model_res.indexOf(Math.max(...model_res));
-                model_pred.innerHTML = pred;
-                
-            });
-            
-            
-            function crop_img(ctx, crop_ctx) {
-              let canvas = ctx.canvas, 
-                w = canvas.width, h = canvas.height,
-                pix = {x:[], y:[]},
-                imageData = ctx.getImageData(0,0,canvas.width,canvas.height),
-                x, y, index;
-              
-              for (y = 0; y < h; y++) {
-                for (x = 0; x < w; x++) {
-                  index = (y * w + x) * 4;
-                  if (imageData.data[index+3] > 0) {
-                    pix.x.push(x);
-                    pix.y.push(y);
-                  } 
-                }
-              }
-              pix.x.sort(function(a,b){return a-b});
-              pix.y.sort(function(a,b){return a-b});
-              var n = pix.x.length-1;
-              
-              w = 1 + pix.x[n] - pix.x[0];
-              h = 1 + pix.y[n] - pix.y[0];
-              let cut = ctx.getImageData(pix.x[0], pix.y[0], w, h);
-              
-              crop_ctx.canvas.width = Math.max(w, h) * 1.05;
-              crop_ctx.canvas.height = Math.max(w, h) * 1.05;
-              crop_ctx.putImageData(cut, (crop_ctx.canvas.width-w)/2, (crop_ctx.canvas.height-h)/2);
+          }]
+        }
+      }
+    })
+
+    const run_button = document.getElementById("run_button");
+    const fabricCanvas = new fabric.Canvas(canvas_main, {
+      isDrawingMode: true,
+    });
+
+    fabricCanvas.freeDrawingBrush.width = 24;
+
+    run_button.addEventListener("click", model);
+
+
+
+
+    function model() {
+      crop_img(main_ctx, crop_ctx);
+      scale_ctx.drawImage(canvas_crop, 5, 5, 18, 18);
+      scale_ctx.filter = 'grayscale(1)'
+      const img_data = scale_ctx.getImageData(0, 0, 28, 28);
+
+
+
+
+      let data = (new Float64Array(img_data.data));
+      let scaled_data = new Float64Array(784);
+      let scaled_counter = 0;
+      for (let i = 3; i < data.length; i += 4) {
+        scaled_data[scaled_counter] = data[i] / 255.0 * 0.99 + 0.01;
+        scaled_counter++;
+      }
+
+      //console.log(scaled_data)
+      init().then(() => {
+        let model_res = run_model(scaled_data);
+        //console.log(model_res);
+        chart.data.datasets[0].data = model_res;
+        chart.update();
+        let pred = model_res.indexOf(Math.max(...model_res));
+        model_pred.innerHTML = pred;
+
+      });
+
+
+      function crop_img(ctx, crop_ctx) {
+        let canvas = ctx.canvas,
+          w = canvas.width, h = canvas.height,
+          pix = { x: [], y: [] },
+          imageData = ctx.getImageData(0, 0, canvas.width, canvas.height),
+          x, y, index;
+
+        for (y = 0; y < h; y++) {
+          for (x = 0; x < w; x++) {
+            index = (y * w + x) * 4;
+            if (imageData.data[index + 3] > 0) {
+              pix.x.push(x);
+              pix.y.push(y);
             }
+          }
         }
-        
-        
-        
-        
-        //clear
-        const clear_button = document.getElementById("clear_button");
-        clear_button.addEventListener("click", clear);
-        function clear() {
-            fabricCanvas.clear();
-            scale_ctx.clearRect(0, 0, canvas.width, canvas.height);
-            crop_ctx.clearRect(0, 0, canvas_crop.width, canvas_crop.height);
-            chart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-            chart.update();
+        pix.x.sort(function (a, b) { return a - b });
+        pix.y.sort(function (a, b) { return a - b });
+        var n = pix.x.length - 1;
+
+        w = 1 + pix.x[n] - pix.x[0];
+        h = 1 + pix.y[n] - pix.y[0];
+        let cut = ctx.getImageData(pix.x[0], pix.y[0], w, h);
+
+        crop_ctx.canvas.width = Math.max(w, h) * 1.05;
+        crop_ctx.canvas.height = Math.max(w, h) * 1.05;
+        crop_ctx.putImageData(cut, (crop_ctx.canvas.width - w) / 2, (crop_ctx.canvas.height - h) / 2);
+      }
+    }
+
+
+
+
+    //clear
+    const clear_button = document.getElementById("clear_button");
+    clear_button.addEventListener("click", clear);
+    function clear() {
+      fabricCanvas.clear();
+      scale_ctx.clearRect(0, 0, canvas.width, canvas.height);
+      crop_ctx.clearRect(0, 0, canvas_crop.width, canvas_crop.height);
+      chart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      chart.update();
+    }
+
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+      coll[i].addEventListener("click", function () {
+        this.classList.toggle("active");
+        var content = this.nextElementSibling;
+        if (content.style.display === "block") {
+          content.style.display = "none";
+        } else {
+          content.style.display = "block";
         }
-      
-    </script>
-  </body>
-  
+      });
+    }
+  </script>
+</body>
+
 </html>
