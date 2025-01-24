@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+      
+    <meta charset="utf-8" />
+    <title>CNN MNIST</title>
+    <script
+          src="https://cdn.jsdelivr.net/npm/fabric@5.3.0/dist/fabric.min.js"
+          integrity="sha256-SPjwkVvrUS/H/htIwO6wdd0IA8eQ79/XXNAH+cPuoso="
+          crossorigin="anonymous"
+    ></script>
+    <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js">
+    </script>
+    
+    <script src="./pkg/mnist_cnn.js"></script>
+  </head>
+  
+  <style>
+        body {
+          font-family: Arial, sans-serif;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          background-color: #f0f0f0;
+          margin: 0;
+          padding: 20px;
+        }
+  
+        canvas {
+          margin: 10px;
+          border-radius: 8px;
+        }
+  
+        #canvas {
+          border: 2px solid #aaa;
+        }
+  
+        #canvas_scale {
+          border: 2px solid #aaa;
+          border-bottom: 2rem;
+        }
+  
+        #model_result {
+          margin-top: 20px;
+          background-color: #fff;
+          border: 1px solid #aaa;
+          border-radius: 8px;
+        }
+  
+        button {
+          margin: 10px;
+          padding: 10px 20px;
+          font-size: 16px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+  
+        #run_button {
+          background-color: #4CAF50;
+          color: white;
+        }
+  
+        #run_button:hover {
+          background-color: #45a049;
+        }
+  
+        #clear_button {
+          background-color: #f44336;
+          color: white;
+        }
+  
+        #clear_button:hover {
+          background-color: #e53935;
+        }
+        
+        .buttons {
+            margin-left: 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        #model_pred {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #aaa;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+        
+        #model_pred p {
+            margin: 2px;
+            margin-bottom: 5px;
+        }
+        
+        @media only screen and (max-width: 1400px) {
+          body {
+            flex-direction: column;
+          }
+          
+          .buttons {
+              margin-left: 0px;
+              margin-top: 20px;
+              display: flex;
+              flex-direction: row;
+              justify-content: center;
+          }
+          
+          #model_pred {
+              margin-top: 0;
+          }
+          
+          
+        
+        }
+      </style>
+
+  <body>
+
+    <canvas id="canvas" width="350" height="350" style="border: 4px solid #aaa"></canvas>
+    <canvas id="canvas_crop" width="300" height="300" style="display: none;"></canvas>
+    
+    <div class="buttons">
+        <button id="run_button">Run Model</button>
+        <button id="clear_button">Clear</button>
+        <div id="model_pred">
+            <p>Prediction: 
+            </p>
+            <span id="model_prediction">None</span>
+        </div>
+    </div>
+    
+    <canvas id="model_result" style="width:100%;max-width:700px"></canvas>
+    <canvas id="canvas_scale" width="28" height="28" style="display: none;"></canvas>
+    <script type="module">
+        import init, { run_model } from "./pkg/mnist_cnn.js";
+      
+        let model_pred = document.getElementById("model_prediction");
+        
+        
+        const canvas_main = document.getElementById("canvas");
+        const main_ctx = canvas_main.getContext("2d");
+        
+        const canvas_crop = document.getElementById("canvas_crop");
+        const crop_ctx = canvas_crop.getContext("2d");
+        
+        const canvas = document.getElementById("canvas_scale");
+        const scale_ctx = canvas.getContext("2d");
+        
+        let chart = new Chart("model_result", {
+            type: 'bar',
+            data: {
+                labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                datasets: [{
+                    label: 'Model Result',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)',
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            max: 1,
+                            min: 0
+                        }
+                    }]
+                }
+            }
+        })
+        
+        const run_button = document.getElementById("run_button");
+        const fabricCanvas = new fabric.Canvas(canvas_main, {
+            isDrawingMode: true,
+        });
+      
+        fabricCanvas.freeDrawingBrush.width = 30;
+        
+        run_button.addEventListener("click", model);
+        
+        
+        
+        
+        function model() {
+            crop_img(main_ctx, crop_ctx);
+            scale_ctx.drawImage(canvas_crop, 5, 5, 18, 18);
+            scale_ctx.filter = 'grayscale(1)'
+            const img_data = scale_ctx.getImageData(0, 0, 28, 28);
+            
+
+            
+            
+            let data = (new Float64Array(img_data.data));
+            let scaled_data = new Float64Array(784);
+            let scaled_counter = 0;
+            for (let i = 3; i < data.length; i += 4) {
+                scaled_data[scaled_counter] = data[i] / 255.0 * 0.99 + 0.01;
+                scaled_counter++;
+            }
+            
+            //console.log(scaled_data)
+            init().then(() => {
+                let model_res = run_model(scaled_data);
+                //console.log(model_res);
+                chart.data.datasets[0].data = model_res;
+                chart.update();
+                let pred = model_res.indexOf(Math.max(...model_res));
+                model_pred.innerHTML = pred;
+                
+            });
+            
+            
+            function crop_img(ctx, crop_ctx) {
+              let canvas = ctx.canvas, 
+                w = canvas.width, h = canvas.height,
+                pix = {x:[], y:[]},
+                imageData = ctx.getImageData(0,0,canvas.width,canvas.height),
+                x, y, index;
+              
+              for (y = 0; y < h; y++) {
+                for (x = 0; x < w; x++) {
+                  index = (y * w + x) * 4;
+                  if (imageData.data[index+3] > 0) {
+                    pix.x.push(x);
+                    pix.y.push(y);
+                  } 
+                }
+              }
+              pix.x.sort(function(a,b){return a-b});
+              pix.y.sort(function(a,b){return a-b});
+              var n = pix.x.length-1;
+              
+              w = 1 + pix.x[n] - pix.x[0];
+              h = 1 + pix.y[n] - pix.y[0];
+              let cut = ctx.getImageData(pix.x[0], pix.y[0], w, h);
+              
+              crop_ctx.canvas.width = Math.max(w, h) * 1.05;
+              crop_ctx.canvas.height = Math.max(w, h) * 1.05;
+              crop_ctx.putImageData(cut, (crop_ctx.canvas.width-w)/2, (crop_ctx.canvas.height-h)/2);
+            }
+        }
+        
+        
+        
+        
+        //clear
+        const clear_button = document.getElementById("clear_button");
+        clear_button.addEventListener("click", clear);
+        function clear() {
+            fabricCanvas.clear();
+            scale_ctx.clearRect(0, 0, canvas.width, canvas.height);
+            crop_ctx.clearRect(0, 0, canvas_crop.width, canvas_crop.height);
+            chart.data.datasets[0].data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            chart.update();
+        }
+      
+    </script>
+  </body>
+  
+</html>

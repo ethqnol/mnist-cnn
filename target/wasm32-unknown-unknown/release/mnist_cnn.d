@@ -1,0 +1,1 @@
+/Users/ewu/Git-Repos/mnist-cnn/target/wasm32-unknown-unknown/release/mnist_cnn.wasm: /Users/ewu/Git-Repos/mnist-cnn/model.bin /Users/ewu/Git-Repos/mnist-cnn/src/lib.rs /Users/ewu/Git-Repos/mnist-cnn/src/model.rs

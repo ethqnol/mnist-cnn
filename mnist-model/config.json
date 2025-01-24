@@ -1,0 +1,1 @@
+{"epochs":24,"batch_size":32,"workers":5,"seed":42,"optimizer":{"weight_decay":{"penalty":0.00001},"grad_clipping":null,"beta_1":0.9,"beta_2":0.999,"epsilon":0.00001}}
